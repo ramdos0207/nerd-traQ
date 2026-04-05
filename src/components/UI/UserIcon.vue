@@ -4,11 +4,18 @@
     :class="[$style.container]"
     :style="styles.container"
     @click.prevent.stop="openModal"
+    @contextmenu.prevent.stop="onContextMenu"
   >
     <div v-if="hasNotification" :class="$style.indicator">
       <NotificationIndicator :size="indicatorSize" />
     </div>
     <div v-if="isInactive" :class="$style.mask" />
+    <UserIconContextMenu
+      v-if="contextMenuPosition"
+      :position="contextMenuPosition"
+      :user-id="userId"
+      @close="closeContextMenu"
+    />
   </div>
 </template>
 
@@ -16,6 +23,8 @@
 import { computed, reactive, toRef, watch } from 'vue'
 
 import NotificationIndicator from '/@/components/UI/NotificationIndicator.vue'
+import UserIconContextMenu from '/@/components/UI/UserIconContextMenu.vue'
+import useContextMenu from '/@/composables/useContextMenu'
 import { useUserModalOpener } from '/@/composables/modal/useUserModalOpener'
 import { buildUserIconPath } from '/@/lib/apis'
 import { useMeStore } from '/@/store/domain/me'
@@ -88,6 +97,16 @@ const { isClickable, openModal } = useUserModalOpener(
   toRef(props, 'userId'),
   toRef(props, 'preventModal')
 )
+
+const {
+  position: contextMenuPosition,
+  open: openContextMenu,
+  close: closeContextMenu
+} = useContextMenu()
+
+const onContextMenu = (e: MouseEvent) => {
+  openContextMenu({ x: e.pageX, y: e.pageY })
+}
 </script>
 
 <style lang="scss" module>
