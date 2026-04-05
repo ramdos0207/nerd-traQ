@@ -28,6 +28,9 @@ const useViewStateSender = () => {
       primaryView.value.type === 'channel' ||
       primaryView.value.type === 'dm'
     ) {
+      if (primaryView.value.type === 'channel' && primaryView.value.peekMode) {
+        return undefined
+      }
       return primaryView.value.channelId
     }
     return undefined

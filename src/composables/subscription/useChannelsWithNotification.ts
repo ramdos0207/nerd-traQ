@@ -1,6 +1,6 @@
 import { ChannelSubscribeLevel } from '@traptitech/traq'
 
-import { computed } from 'vue'
+import { type MaybeRef, computed, toValue } from 'vue'
 
 import { isDefined } from '/@/lib/basic/array'
 import { useBrowserSettings } from '/@/store/app/browserSettings'
@@ -8,7 +8,18 @@ import { useStaredChannels } from '/@/store/domain/staredChannels'
 import { useSubscriptionStore } from '/@/store/domain/subscription'
 import { useChannelsStore } from '/@/store/entities/channels'
 
-const useChannelsWithNotification = () => {
+export const unreadSortModes = ['updatedAt', 'since', 'count'] as const
+export type UnreadSortMode = (typeof unreadSortModes)[number]
+
+export const unreadSortModeLabels: Record<UnreadSortMode, string> = {
+  updatedAt: '最新投稿',
+  since: '最古未読',
+  count: '未読数'
+}
+
+const useChannelsWithNotification = (
+  sortMode: MaybeRef<UnreadSortMode> = 'updatedAt'
+) => {
   const { unreadChannelsMap, subscriptionMap } = useSubscriptionStore()
   const { channelsMap, dmChannelsMap } = useChannelsStore()
   const starredChannelStore = useStaredChannels()
@@ -27,7 +38,14 @@ const useChannelsWithNotification = () => {
 
   const sortedUnreadChannels = computed(() =>
     [...unreadChannelsMap.value.values()].sort((a, b) => {
-      return Date.parse(b.updatedAt) - Date.parse(a.updatedAt)
+      switch (toValue(sortMode)) {
+        case 'since':
+          return Date.parse(a.since) - Date.parse(b.since)
+        case 'count':
+          return b.count - a.count
+        default:
+          return Date.parse(b.updatedAt) - Date.parse(a.updatedAt)
+      }
     })
   )
 

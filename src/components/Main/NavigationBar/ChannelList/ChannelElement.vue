@@ -37,6 +37,7 @@
           "
           draggable="false"
           @click="navigate"
+          @contextmenu.prevent="onContextMenu"
           @mouseenter="onMouseEnter"
           @mouseleave="onMouseLeave"
           @focus="onFocus"
@@ -59,6 +60,19 @@
       <slot />
     </div>
 
+    <!-- 右クリックコンテキストメニュー -->
+    <ContextMenuContainer
+      v-if="contextMenuPosition"
+      :position="contextMenuPosition"
+      @close="contextMenuPosition = null"
+    >
+      <div :class="$style.contextMenu">
+        <button :class="$style.contextMenuItem" @click="openAsPeek">
+          既読にせずに開く
+        </button>
+      </div>
+    </ContextMenuContainer>
+
     <!-- チャンネルの背景 -->
     <div
       v-if="isSelected || isChannelBgHovered || isFocused"
@@ -72,17 +86,20 @@
 <script lang="ts" setup>
 import { ChannelSubscribeLevel } from '@traptitech/traq'
 
-import { computed, toRef } from 'vue'
+import { computed, ref, toRef } from 'vue'
+import { useRouter } from 'vue-router'
 
 import {
   type TypedProps,
   usePath
 } from '/@/components/Main/NavigationBar/ChannelList/composables/usePath'
+import ContextMenuContainer from '/@/components/UI/ContextMenuContainer.vue'
 import useFocus from '/@/composables/dom/useFocus'
 import useHover from '/@/composables/dom/useHover'
 import useChannelPath from '/@/composables/useChannelPath'
 import { useOpenLink } from '/@/composables/useOpenLink'
 import type { ChannelTreeNode } from '/@/lib/channelTree'
+import type { Point } from '/@/lib/basic/point'
 import { LEFT_CLICK_BUTTON } from '/@/lib/dom/event'
 import { useMainViewStore } from '/@/store/ui/mainView'
 import type { ChannelId } from '/@/types/entity-ids'
@@ -110,7 +127,12 @@ const emit = defineEmits<{
   (e: 'clickHash', channelId: ChannelId): void
 }>()
 
-const { primaryView } = useMainViewStore()
+const {
+  primaryView,
+  setPendingPeekMode,
+  changePrimaryViewToChannel
+} = useMainViewStore()
+const router = useRouter()
 
 const hasChildren = computed(() => props.channel.children.length > 0)
 const isSelected = computed(
@@ -134,6 +156,29 @@ const { openLink } = useOpenLink()
 const { channelIdToLink } = useChannelPath()
 const openChannel = (event: MouseEvent) => {
   openLink(event, channelIdToLink(props.channel.id) as string)
+}
+
+const contextMenuPosition = ref<Point | null>(null)
+
+const onContextMenu = (e: MouseEvent) => {
+  contextMenuPosition.value = { x: e.clientX, y: e.clientY }
+}
+
+const openAsPeek = () => {
+  contextMenuPosition.value = null
+
+  const isSameChannel =
+    primaryView.value.type === 'channel' &&
+    primaryView.value.channelId === props.channel.id
+
+  if (isSameChannel) {
+    // 同じチャンネルの場合は router.push が NavigationDuplicated になるため直接 store を更新
+    changePrimaryViewToChannel({ channelId: props.channel.id, peekMode: true })
+  } else {
+    // 別チャンネルの場合はルートウォッチャー経由で changePrimaryViewToChannel が呼ばれる
+    setPendingPeekMode(true)
+    router.push(channelIdToLink(props.channel.id) ?? '').catch(() => {})
+  }
 }
 
 const { pathToShow, pathTooltip } = usePath(props as TypedProps)
@@ -248,5 +293,24 @@ $bgLeftShift: 8px;
 }
 .slot {
   padding-left: $bgLeftShift;
+}
+.contextMenu {
+  @include background-primary;
+  @include color-ui-primary;
+  border-radius: 4px;
+  padding: 4px 0;
+  min-width: 120px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.contextMenuItem {
+  @include size-body2;
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  text-align: left;
+  cursor: pointer;
+  &:hover {
+    @include background-secondary;
+  }
 }
 </style>
