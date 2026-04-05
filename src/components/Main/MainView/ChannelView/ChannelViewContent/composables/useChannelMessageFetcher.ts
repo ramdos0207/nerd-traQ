@@ -11,6 +11,7 @@ import apis from '/@/lib/apis'
 import { wsListener } from '/@/lib/websocket'
 import { useMessagesView } from '/@/store/domain/messagesView'
 import { useSubscriptionStore } from '/@/store/domain/subscription'
+import { useMainViewStore } from '/@/store/ui/mainView'
 import { messageMitt, useMessagesStore } from '/@/store/entities/messages'
 import type { ChannelId, MessageId } from '/@/types/entity-ids'
 
@@ -41,6 +42,7 @@ const useChannelMessageFetcher = (
     unreadChannelsMapInitialFetchPromise,
     deleteUnreadChannelWithSend
   } = useSubscriptionStore()
+  const { primaryView } = useMainViewStore()
   const { fetchLimit, waitHeightResolved } = useFetchLimit(
     scrollerRef,
     MESSAGE_HEIGHT
@@ -184,6 +186,9 @@ const useChannelMessageFetcher = (
       // 未読の削除は最新メッセージ読み込み完了時
       unreadSince.value = unreadChannel.since
     }
+
+    // ピークモードでは既読APIを呼ばない
+    if (primaryView.value.type === 'channel' && primaryView.value.peekMode) return
 
     // 未読の削除
     await deleteUnreadChannelWithSend(props.channelId)
