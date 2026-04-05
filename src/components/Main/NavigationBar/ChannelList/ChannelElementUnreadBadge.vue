@@ -24,7 +24,6 @@ const props = withDefaults(
 
 const unreadCountString = computed(() => {
   if (props.unreadCount <= 0) return undefined
-  if (props.unreadCount > 99) return '99+'
   return '' + props.unreadCount
 })
 </script>
