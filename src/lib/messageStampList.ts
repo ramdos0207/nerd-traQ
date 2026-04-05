@@ -9,6 +9,7 @@ export interface StampUser {
   id: UserId
   count: number
   createdAt: Date
+  updatedAt: Date
 }
 
 /**
@@ -57,7 +58,8 @@ export const createStampList = (
           {
             id: stamp.userId,
             count: stamp.count,
-            createdAt: new Date(stamp.createdAt)
+            createdAt: new Date(stamp.createdAt),
+            updatedAt: new Date(stamp.updatedAt)
           }
         ],
         createdAt: new Date(stamp.createdAt),
@@ -70,7 +72,8 @@ export const createStampList = (
       s.users.push({
         id: stamp.userId,
         count: stamp.count,
-        createdAt: new Date(stamp.createdAt)
+        createdAt: new Date(stamp.createdAt),
+        updatedAt: new Date(stamp.updatedAt)
       })
       if (stamp.userId === myId) {
         s.myCount = stamp.count

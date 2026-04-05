@@ -13,8 +13,11 @@ export const getMinutesString = (date: Readonly<Date>) =>
 export const getSecondsString = (date: Readonly<Date>) =>
   date.getSeconds().toString().padStart(2, '0')
 
+export const getMillisecondsString = (date: Readonly<Date>) =>
+  date.getMilliseconds().toString().padStart(3, '0')
+
 export const getTimeString = (date: Readonly<Date>) =>
-  `${getHoursString(date)}:${getMinutesString(date)}`
+  `${getHoursString(date)}:${getMinutesString(date)}:${getSecondsString(date)}.${getMillisecondsString(date)}`
 
 export const getDayString = (date: Readonly<Date>) =>
   `${getMonthString(date)}/${getDateString(date)}`
