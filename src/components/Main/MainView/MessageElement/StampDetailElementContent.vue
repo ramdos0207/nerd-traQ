@@ -1,6 +1,8 @@
 <template>
   <div :class="$style.clickable" @click="openModal">
-    <span>{{ removeInvisibleCharacters(displayName) }}</span>
+    <span :title="stampTimeTooltip">{{
+      removeInvisibleCharacters(displayName)
+    }}</span>
     <span :class="$style.tails">
       <span v-if="count > 1" :class="$style.numberWrap">
         <SpinNumber :value="count" />
@@ -15,6 +17,7 @@ import { computed, toRef } from 'vue'
 
 import SpinNumber from '/@/components/UI/SpinNumber.vue'
 import { useUserModalOpener } from '/@/composables/modal/useUserModalOpener'
+import { getDateRepresentation } from '/@/lib/basic/date'
 import { makeInvisibleCharactersRemover } from '/@/lib/basic/string'
 import { useUsersStore } from '/@/store/entities/users'
 import type { UserId } from '/@/types/entity-ids'
@@ -22,6 +25,8 @@ import type { UserId } from '/@/types/entity-ids'
 const props = defineProps<{
   userId: UserId
   count: number
+  createdAt: Date
+  updatedAt: Date
 }>()
 
 const { usersMap } = useUsersStore()
@@ -31,6 +36,14 @@ const displayName = computed(() => user.value?.displayName ?? 'unknown')
 const { openModal } = useUserModalOpener(toRef(props, 'userId'))
 
 const removeInvisibleCharacters = makeInvisibleCharactersRemover()
+
+const stampTimeTooltip = computed(() => {
+  const created = getDateRepresentation(props.createdAt)
+  if (props.updatedAt.getTime() === props.createdAt.getTime()) {
+    return created
+  }
+  return `${created} (更新: ${getDateRepresentation(props.updatedAt)})`
+})
 </script>
 
 <style lang="scss" module>
