@@ -42,7 +42,13 @@
 
     <template v-if="unreadChannels.length > 0">
       <div ref="unreadSectionHeaderRef">
-        <NavigationContentContainer subtitle="未読" />
+        <NavigationContentContainer subtitle="未読">
+          <template #control>
+            <button :class="$style.sortButton" @click="rotateSortMode">
+              {{ unreadSortModeLabels[unreadSortMode] }}
+            </button>
+          </template>
+        </NavigationContentContainer>
       </div>
       <div ref="unreadTreeWrapperRef" :class="$style.treeWrapper">
         <ChannelTree
@@ -93,7 +99,11 @@ import NavigationContentContainer from '/@/components/Main/NavigationBar/Navigat
 import NavigationContentTitle from '/@/components/Main/NavigationBar/NavigationContentTitle.vue'
 import EmptyState from '/@/components/UI/EmptyState.vue'
 import { useQall } from '/@/composables/qall/useQall'
-import useChannelsWithNotification from '/@/composables/subscription/useChannelsWithNotification'
+import useChannelsWithNotification, {
+  type UnreadSortMode,
+  unreadSortModeLabels,
+  unreadSortModes
+} from '/@/composables/subscription/useChannelsWithNotification'
 import { filterTrees } from '/@/lib/basic/tree'
 import { constructTreeFromIds } from '/@/lib/channelTree'
 import type { ChannelTreeNode } from '/@/lib/channelTree'
@@ -133,8 +143,16 @@ const homeChannelWithTree = computed(() => {
   return filterTrees(trees, channel => !channel.archived)
 })
 
+const unreadSortMode = ref<UnreadSortMode>('updatedAt')
+
+const rotateSortMode = () => {
+  const idx = unreadSortModes.indexOf(unreadSortMode.value)
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  unreadSortMode.value = unreadSortModes[(idx + 1) % unreadSortModes.length]!
+}
+
 const { noticeableChannels, unreadChannels, dmChannelsWithNotification } =
-  useChannelsWithNotification()
+  useChannelsWithNotification(unreadSortMode)
 
 const topLevelChannels = computed(() =>
   filterTrees(toRaw(homeChannelTree.value.children), node => !node.archived)
@@ -184,5 +202,16 @@ const scrollMargins = useScrollMargins({
 }
 .treeWrapper {
   padding-bottom: 16px;
+}
+.sortButton {
+  @include color-ui-secondary;
+  @include size-body2;
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 4px;
+  line-height: 1.4;
+  &:hover {
+    @include background-secondary;
+  }
 }
 </style>
