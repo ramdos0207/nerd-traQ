@@ -9,19 +9,16 @@
       :is-bot="user?.bot ?? false"
     />
     <span :class="$style.name">@{{ user?.name ?? 'unknown' }}</span>
-    <span
-      :class="$style.date"
-      :title="createdAt !== updatedAt ? createdDate : undefined"
-    >
-      {{ date }}
+    <span :class="$style.date">
+      {{ dateMain }}<span :class="$style.dateMs">{{ dateMs }}</span>
     </span>
-    <AIcon
+    <span
       v-if="createdAt !== updatedAt"
       :class="$style.editIcon"
-      :size="16"
-      name="pencil-outline"
-      mdi
-    />
+      :title="updatedDate"
+    >
+      <AIcon :size="16" name="pencil-outline" mdi />
+    </span>
   </div>
 </template>
 
@@ -29,10 +26,7 @@
 import { computed } from 'vue'
 
 import AIcon from '/@/components/UI/AIcon.vue'
-import {
-  getDateRepresentation,
-  getFullDayWithTimeString
-} from '/@/lib/basic/date'
+import { getDateRepresentation } from '/@/lib/basic/date'
 import { useUsersStore } from '/@/store/entities/users'
 import type { UserId } from '/@/types/entity-ids'
 
@@ -51,10 +45,13 @@ if (user.value === undefined) {
   fetchUser({ userId: props.userId })
 }
 
-const createdDate = computed(() =>
-  getFullDayWithTimeString(new Date(props.createdAt))
-)
-const date = computed(() => getDateRepresentation(props.updatedAt))
+const date = computed(() => getDateRepresentation(props.createdAt))
+const dateMain = computed(() => date.value.split('.')[0])
+const dateMs = computed(() => {
+  const ms = date.value.split('.')[1]
+  return ms !== undefined ? '.' + ms : ''
+})
+const updatedDate = computed(() => getDateRepresentation(props.updatedAt))
 </script>
 
 <style lang="scss" module>
@@ -98,9 +95,14 @@ const date = computed(() => getDateRepresentation(props.updatedAt))
   margin-left: 4px;
 }
 
+.dateMs {
+  font-size: 0.75em;
+}
+
 .editIcon {
   @include color-ui-secondary;
   margin-left: 4px;
   flex-shrink: 0;
+  cursor: default;
 }
 </style>

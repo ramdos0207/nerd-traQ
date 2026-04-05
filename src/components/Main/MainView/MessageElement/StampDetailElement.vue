@@ -5,7 +5,12 @@
       <span>from</span>
     </div>
     <div v-for="user in stamp.users" :key="user.id" :class="$style.contents">
-      <StampDetailElementContent :user-id="user.id" :count="user.count">
+      <StampDetailElementContent
+        :user-id="user.id"
+        :count="user.count"
+        :created-at="user.createdAt"
+        :updated-at="user.updatedAt"
+      >
         <span v-if="!isLastUser(user)" :class="$style.delimiter"> / </span>
       </StampDetailElementContent>
     </div>
