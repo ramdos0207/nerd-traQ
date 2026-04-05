@@ -26,6 +26,11 @@
         subtitle="未読"
         :class="$style.item"
       >
+        <template #control>
+          <button :class="$style.sortButton" @click="rotateSortMode">
+            {{ unreadSortModeLabels[unreadSortMode] }}
+          </button>
+        </template>
         <ChannelList
           :channels="unreadChannels"
           :show-star="prioritizeStarredChannel"
@@ -51,7 +56,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, toRaw } from 'vue'
+import { computed, ref, toRaw } from 'vue'
 
 import ChannelList from '/@/components/Main/NavigationBar/ChannelList/ChannelList.vue'
 import ChannelTree from '/@/components/Main/NavigationBar/ChannelList/ChannelTree.vue'
@@ -59,7 +64,11 @@ import DMChannelList from '/@/components/Main/NavigationBar/DMChannelList/DMChan
 import NavigationContentContainer from '/@/components/Main/NavigationBar/NavigationContentContainer.vue'
 import EmptyState from '/@/components/UI/EmptyState.vue'
 import { useQall } from '/@/composables/qall/useQall'
-import useChannelsWithNotification from '/@/composables/subscription/useChannelsWithNotification'
+import useChannelsWithNotification, {
+  type UnreadSortMode,
+  unreadSortModeLabels,
+  unreadSortModes
+} from '/@/composables/subscription/useChannelsWithNotification'
 import { filterTrees } from '/@/lib/basic/tree'
 import { constructTreeFromIds } from '/@/lib/channelTree'
 import { useBrowserSettings } from '/@/store/app/browserSettings'
@@ -84,8 +93,16 @@ const homeChannelWithTree = computed(() => {
   return filterTrees(trees, channel => !channel.archived)
 })
 
+const unreadSortMode = ref<UnreadSortMode>('updatedAt')
+
+const rotateSortMode = () => {
+  const idx = unreadSortModes.indexOf(unreadSortMode.value)
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  unreadSortMode.value = unreadSortModes[(idx + 1) % unreadSortModes.length]!
+}
+
 const { noticeableChannels, unreadChannels, dmChannelsWithNotification } =
-  useChannelsWithNotification()
+  useChannelsWithNotification(unreadSortMode)
 
 const topLevelChannels = computed(() =>
   // filterTreesは重いのと内部ではreactiveである必要がないのでtoRawする
@@ -105,6 +122,17 @@ const qallingChannels = computed(() =>
   }
   &:last-child {
     margin-bottom: 0;
+  }
+}
+.sortButton {
+  @include color-ui-secondary;
+  @include size-body2;
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 4px;
+  line-height: 1.4;
+  &:hover {
+    @include background-secondary;
   }
 }
 </style>

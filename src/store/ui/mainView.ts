@@ -26,6 +26,7 @@ export interface ChannelView extends ViewInformationBase {
   type: 'channel'
   channelId: ChannelId
   entryMessageId?: MessageId
+  peekMode?: boolean
 }
 export interface QallView extends ViewInformationBase {
   type: 'qall'
@@ -70,6 +71,11 @@ const useMainViewStorePinia = defineStore('ui/mainView', () => {
   const { lastOpenChannelId } = useBrowserSettings()
   const channelsStore = useChannelsStore()
   const usersStore = useUsersStore()
+
+  const pendingPeekMode = ref(false)
+  const setPendingPeekMode = (value: boolean) => {
+    pendingPeekMode.value = value
+  }
 
   const layout = ref<LayoutType>('single')
 
@@ -136,16 +142,20 @@ const useMainViewStorePinia = defineStore('ui/mainView', () => {
 
   const changePrimaryViewToChannel = ({
     channelId,
-    entryMessageId
+    entryMessageId,
+    peekMode: peekModeParam
   }: {
     channelId: ChannelId | DMChannelId
     entryMessageId?: MessageId
+    peekMode?: boolean
   }) => {
     primaryView.value = {
       type: 'channel',
       channelId,
-      entryMessageId
+      entryMessageId,
+      peekMode: peekModeParam ?? pendingPeekMode.value
     }
+    pendingPeekMode.value = false
 
     // 通常のチャンネルは最後に開いたチャンネルとして保持
     if (channelsStore.channelsMap.value.has(channelId)) {
@@ -195,7 +205,9 @@ const useMainViewStorePinia = defineStore('ui/mainView', () => {
     changePrimaryViewToChannelOrDM,
     changePrimaryViewToChannel,
     changePrimaryViewToDM,
-    changePrimaryViewToClip
+    changePrimaryViewToClip,
+
+    setPendingPeekMode
   }
 })
 
