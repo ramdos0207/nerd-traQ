@@ -211,7 +211,18 @@ const useChannelMessageFetcher = (
     unreadSince.value = undefined
   }
 
-  const init = () => {
+  const init = async () => {
+    // 未読データが取得されるまで待つ
+    await unreadChannelsMapInitialFetchPromise
+
+    // エントリーメッセージが最古の未読と一致する場合、セパレータを先行表示
+    if (props.entryMessageId) {
+      const unreadChannel = unreadChannelsMap.value.get(props.channelId)
+      if (unreadChannel?.oldestMessageId === props.entryMessageId) {
+        unreadSince.value = unreadChannel.since
+      }
+    }
+
     messagesFetcher.init()
   }
 
@@ -220,19 +231,9 @@ const useChannelMessageFetcher = (
     init()
   })
   watch(
-    () => props.entryMessageId,
-    (newVal, oldVal) => {
-      if (newVal === oldVal) {
-        return
-      }
-      reset()
-      init()
-    }
-  )
-  watch(
-    () => props.channelId,
-    (newVal, oldVal) => {
-      if (newVal === oldVal) {
+    [() => props.channelId, () => props.entryMessageId],
+    ([newChannelId, newEntryId], [oldChannelId, oldEntryId]) => {
+      if (newChannelId === oldChannelId && newEntryId === oldEntryId) {
         return
       }
       reset()
