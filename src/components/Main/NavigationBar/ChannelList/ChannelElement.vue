@@ -24,7 +24,7 @@
       <router-link
         v-slot="{ href, navigate }"
         custom
-        :to="channelIdToLink(props.channel.id) ?? ''"
+        :to="firstUnreadMessageLink ?? channelIdToLink(props.channel.id) ?? ''"
       >
         <a
           :class="$style.channel"
@@ -101,6 +101,8 @@ import { useOpenLink } from '/@/composables/useOpenLink'
 import type { ChannelTreeNode } from '/@/lib/channelTree'
 import type { Point } from '/@/lib/basic/point'
 import { LEFT_CLICK_BUTTON } from '/@/lib/dom/event'
+import { constructMessagesPath } from '/@/router'
+import { useSubscriptionStore } from '/@/store/domain/subscription'
 import { useMainViewStore } from '/@/store/ui/mainView'
 import type { ChannelId } from '/@/types/entity-ids'
 
@@ -152,10 +154,22 @@ const onClickIcon = (e: KeyboardEvent | MouseEvent) => {
   emit('clickHash', props.channel.id)
 }
 
+const { unreadChannelsMap } = useSubscriptionStore()
 const { openLink } = useOpenLink()
 const { channelIdToLink } = useChannelPath()
+
+const firstUnreadMessageLink = computed(() => {
+  const unreadChannel = unreadChannelsMap.value.get(props.channel.id)
+  if (unreadChannel?.oldestMessageId) {
+    return constructMessagesPath(unreadChannel.oldestMessageId)
+  }
+  return null
+})
+
 const openChannel = (event: MouseEvent) => {
-  openLink(event, channelIdToLink(props.channel.id) as string)
+  const link =
+    firstUnreadMessageLink.value ?? (channelIdToLink(props.channel.id) as string)
+  openLink(event, link)
 }
 
 const contextMenuPosition = ref<Point | null>(null)
