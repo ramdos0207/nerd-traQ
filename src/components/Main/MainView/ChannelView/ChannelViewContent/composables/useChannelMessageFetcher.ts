@@ -98,11 +98,14 @@ const useChannelMessageFetcher = (
     }
   }
 
-  const fetchFormerMessages = async (isReachedEnd: Ref<boolean>) => {
+  const fetchFormerMessages = async (
+    isReachedEnd: Ref<boolean>,
+    limitOverride?: number
+  ) => {
     await waitHeightResolved
     const { messages: messagesDesc, hasMore } = await fetchMessagesByChannelId({
       channelId: props.channelId,
-      limit: fetchLimit.value,
+      limit: limitOverride ?? fetchLimit.value,
       order: 'desc',
       until: loadedMessageOldestDate.value
     })
@@ -204,25 +207,41 @@ const useChannelMessageFetcher = (
     onReachedLatest
   )
 
+  const effectiveEntryMessageId = ref<MessageId | undefined>()
+
   const reset = () => {
     messagesFetcher.reset()
     loadedMessageOldestDate.value = undefined
     loadedMessageLatestDate.value = undefined
     unreadSince.value = undefined
+    effectiveEntryMessageId.value = undefined
   }
 
   const init = async () => {
     // 未読データが取得されるまで待つ
     await unreadChannelsMapInitialFetchPromise
 
-    // エントリーメッセージが最古の未読と一致する場合、セパレータを先行表示
+    const unreadChannel = unreadChannelsMap.value.get(props.channelId)
+
     if (props.entryMessageId) {
-      const unreadChannel = unreadChannelsMap.value.get(props.channelId)
+      // パーマリンク: 既存挙動。最古の未読と一致するならセパレータ先行表示
       if (unreadChannel?.oldestMessageId === props.entryMessageId) {
         unreadSince.value = unreadChannel.since
       }
+      effectiveEntryMessageId.value = props.entryMessageId
+      messagesFetcher.init()
+      return
     }
 
+    // 未読 0<count<20: latest を (19+count) 件取得しつつ around 方向で entry 位置にスクロール
+    if (unreadChannel && unreadChannel.count > 0 && unreadChannel.count < 20) {
+      unreadSince.value = unreadChannel.since
+      effectiveEntryMessageId.value = unreadChannel.oldestMessageId
+      messagesFetcher.init(19 + unreadChannel.count, 'around')
+      return
+    }
+
+    effectiveEntryMessageId.value = undefined
     messagesFetcher.init()
   }
 
@@ -265,7 +284,8 @@ const useChannelMessageFetcher = (
 
   return {
     ...messagesFetcher,
-    unreadSince
+    unreadSince,
+    effectiveEntryMessageId
   }
 }
 

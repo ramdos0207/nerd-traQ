@@ -160,7 +160,7 @@ const { channelIdToLink } = useChannelPath()
 
 const firstUnreadMessageLink = computed(() => {
   const unreadChannel = unreadChannelsMap.value.get(props.channel.id)
-  if (unreadChannel?.oldestMessageId) {
+  if (unreadChannel?.oldestMessageId && unreadChannel.count >= 20) {
     return constructMessagesPath(unreadChannel.oldestMessageId)
   }
   return null

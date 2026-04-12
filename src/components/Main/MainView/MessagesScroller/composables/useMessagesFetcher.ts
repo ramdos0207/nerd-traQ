@@ -20,7 +20,10 @@ const useMessageFetcher = (
    * そのチェックの際に前後で変化していないかという形で利用する
    */
   id: Ref<string>,
-  fetchFormerMessages: (isReachedEnd: Ref<boolean>) => Promise<MessageId[]>,
+  fetchFormerMessages: (
+    isReachedEnd: Ref<boolean>,
+    limitOverride?: number
+  ) => Promise<MessageId[]>,
   fetchLatterMessages:
     | ((isReachedLatest: Ref<boolean>) => Promise<MessageId[]>)
     | undefined,
@@ -99,19 +102,25 @@ const useMessageFetcher = (
     )
   }
 
-  const onLoadLatestMessagesRequest = async () => {
+  const onLoadLatestMessagesRequest = async (
+    limitOverride?: number,
+    directionOverride?: LoadingDirection
+  ) => {
     isLoading.value = true
 
     await runWithIdentifierCheck(
       async () => {
-        const newMessageIds = await fetchFormerMessages(isReachedEnd)
+        const newMessageIds = await fetchFormerMessages(
+          isReachedEnd,
+          limitOverride
+        )
         await renderMessageFromIds(newMessageIds)
         return newMessageIds
       },
       newMessageIds => {
         isLoading.value = false
         isInitialLoad.value = false
-        lastLoadingDirection.value = 'latest'
+        lastLoadingDirection.value = directionOverride ?? 'latest'
         messageIds.value = [...new Set([...newMessageIds, ...messageIds.value])]
       }
     )
@@ -211,13 +220,19 @@ const useMessageFetcher = (
     messageIds.value.push(messageId)
   }
 
-  const init = () => {
+  const init = (
+    latestFetchLimitOverride?: number,
+    latestFetchDirectionOverride?: LoadingDirection
+  ) => {
     resetRenderedContent()
     if (props.entryMessageId) {
       onLoadAroundMessagesRequest(props.entryMessageId)
     } else {
       isReachedLatest.value = true
-      onLoadLatestMessagesRequest()
+      onLoadLatestMessagesRequest(
+        latestFetchLimitOverride,
+        latestFetchDirectionOverride
+      )
     }
   }
 
