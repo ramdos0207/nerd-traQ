@@ -7,7 +7,7 @@
       :is-reached-end="isReachedEnd"
       :is-reached-latest="isReachedLatest"
       :is-loading="isLoading"
-      :entry-message-id="entryMessageId"
+      :entry-message-id="effectiveEntryMessageId"
       :last-loading-direction="lastLoadingDirection"
       @request-load-former="onLoadFormerMessagesRequest"
       @request-load-latter="onLoadLatterMessagesRequest"
@@ -29,7 +29,7 @@
           :class="$style.element"
           :message-id="messageId"
           :is-archived="isArchived"
-          :is-entry-message="messageId === entryMessageId"
+          :is-entry-message="messageId === effectiveEntryMessageId"
           :pinned-user-id="messagePinnedUserMap.get(messageId)"
           @change-height="onChangeHeight"
           @entry-message-loaded="onEntryMessageLoaded"
@@ -87,6 +87,7 @@ const {
   isLoading,
   lastLoadingDirection,
   unreadSince,
+  effectiveEntryMessageId,
   onLoadFormerMessagesRequest,
   onLoadLatterMessagesRequest
 } = useChannelMessageFetcher(scrollerRef, props)
