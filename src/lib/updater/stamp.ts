@@ -13,13 +13,14 @@ export const useStampUpdater = () => {
 
   const addStampOptimistically = async (
     messageId: MessageId,
-    stampId: StampId
+    stampId: StampId,
+    count = 1
   ) => {
-    const cancel = addStampLocally(messageId, stampId)
+    const cancel = addStampLocally(messageId, stampId, count)
     upsertLocalStampHistory(stampId, new Date())
     recordStampUsage(stampId)
     try {
-      await apis.addMessageStamp(messageId, stampId)
+      await apis.addMessageStamp(messageId, stampId, { count })
     } catch {
       addErrorToast('メッセージにスタンプを追加できませんでした')
       cancel?.()

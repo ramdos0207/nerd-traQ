@@ -184,7 +184,11 @@ const useMessagesStorePinia = defineStore('entities/messages', () => {
     return false
   }
 
-  const addStampLocally = (messageId: MessageId, stampId: StampId) => {
+  const addStampLocally = (
+    messageId: MessageId,
+    stampId: StampId,
+    count = 1
+  ) => {
     if (myId.value === undefined) return
 
     if (!messagesMap.value.has(messageId)) return
@@ -204,7 +208,7 @@ const useMessagesStorePinia = defineStore('entities/messages', () => {
             stamp.stampId === stampId && stamp.userId === myId.value
               ? {
                   ...stamp,
-                  count: currentCount + 1,
+                  count: currentCount + count,
                   updatedAt: new Date().toISOString()
                 }
               : stamp
@@ -215,7 +219,7 @@ const useMessagesStorePinia = defineStore('entities/messages', () => {
             {
               userId: myId.value,
               stampId,
-              count: 1,
+              count,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
             }
@@ -235,8 +239,8 @@ const useMessagesStorePinia = defineStore('entities/messages', () => {
       const revertedStamps = stamps
         .map(stamp =>
           stamp.stampId === stampId && stamp.userId === myId.value
-            ? stamp.count > 1
-              ? { ...stamp, count: stamp.count - 1 }
+            ? stamp.count > count
+              ? { ...stamp, count: stamp.count - count }
               : undefined
             : stamp
         )

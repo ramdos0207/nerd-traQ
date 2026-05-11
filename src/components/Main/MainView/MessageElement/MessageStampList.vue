@@ -21,6 +21,7 @@
             :is-archived="isArchived"
             @add-stamp="addStamp"
             @remove-stamp="removeStamp"
+            @open-context-menu="openStampContextMenu"
           />
           <StampDetailElement
             v-if="isDetailShown"
@@ -37,6 +38,13 @@
         <AIcon mdi name="plus" :size="20" />
       </div>
     </div>
+    <MessageStampContextMenu
+      v-if="position && contextMenuStamp"
+      :position="position"
+      :message-id="messageId"
+      :stamp="contextMenuStamp"
+      @close="closeContextMenu"
+    />
   </div>
 </template>
 
@@ -46,13 +54,19 @@ import type { MessageStamp } from '@traptitech/traq'
 import { computed, ref } from 'vue'
 
 import AIcon from '/@/components/UI/AIcon.vue'
+import useContextMenu from '/@/composables/useContextMenu'
 import useToggle from '/@/composables/utils/useToggle'
-import { createStampList } from '/@/lib/messageStampList'
+import type { Point } from '/@/lib/basic/point'
+import {
+  createStampList,
+  type MessageStampById
+} from '/@/lib/messageStampList'
 import { useStampUpdater } from '/@/lib/updater/stamp'
 import { useMeStore } from '/@/store/domain/me'
 import { useStampPickerInvoker } from '/@/store/ui/stampPicker'
 import type { StampId } from '/@/types/entity-ids'
 
+import MessageStampContextMenu from './MessageStampContextMenu.vue'
 import StampDetailElement from './StampDetailElement.vue'
 import StampElement from './StampElement.vue'
 
@@ -79,6 +93,18 @@ const addStamp = (stampId: StampId) =>
   addStampOptimistically(props.messageId, stampId)
 const removeStamp = (stampId: StampId) =>
   removeStampOptimistically(props.messageId, stampId)
+
+const contextMenuStamp = ref<MessageStampById>()
+const {
+  position,
+  open: openContextMenu,
+  close: closeContextMenu
+} = useContextMenu()
+
+const openStampContextMenu = (stamp: MessageStampById, position: Point) => {
+  contextMenuStamp.value = stamp
+  openContextMenu(position)
+}
 
 const listEle = ref<HTMLDivElement>()
 const { toggleStampPicker } = useStampPickerInvoker(
