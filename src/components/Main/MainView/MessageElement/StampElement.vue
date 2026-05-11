@@ -6,6 +6,7 @@
     :data-include-me="$boolAttr(includeMe)"
     :data-is-archived="$boolAttr(isArchived)"
     @click="onClick"
+    @contextmenu.prevent.stop="onContextMenu"
     @mouseenter="onMouseEnter"
     @mouseleave="onMouseLeave"
   >
@@ -35,6 +36,7 @@ import AStamp from '/@/components/UI/AStamp.vue'
 import SpinNumber from '/@/components/UI/SpinNumber.vue'
 import useHover from '/@/composables/dom/useHover'
 import useResponsive from '/@/composables/useResponsive'
+import type { Point } from '/@/lib/basic/point'
 import type { MessageStampById } from '/@/lib/messageStampList'
 import { useStampsStore } from '/@/store/entities/stamps'
 import { useToastStore } from '/@/store/ui/toast'
@@ -50,6 +52,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'addStamp', _stampId: string): void
   (e: 'removeStamp', _stampId: string): void
+  (e: 'openContextMenu', _stamp: MessageStampById, _position: Point): void
 }>()
 
 const { isTouchDevice } = useResponsive()
@@ -102,6 +105,11 @@ const onClick = () => {
   }
   isProgress.value = true
 }
+
+const onContextMenu = (e: MouseEvent) => {
+  emit('openContextMenu', props.stamp, { x: e.pageX, y: e.pageY })
+}
+
 watch(
   () => props.stamp,
   () => {
