@@ -85,9 +85,12 @@ const useMessagesStorePinia = defineStore('entities/messages', () => {
     messageId: MessageId,
     stamps: MessageStamp[]
   ) => {
-    const message = messagesMap.value.get(messageId)
+    const message = internalMessagesMap.value.get(messageId)
     if (!message) return
-    message.stamps = stamps
+    internalMessagesMap.value = new Map(internalMessagesMap.value).set(
+      messageId,
+      { ...message, stamps }
+    )
   }
   const pinMessage = (messageId: MessageId) => {
     const message = messagesMap.value.get(messageId)
