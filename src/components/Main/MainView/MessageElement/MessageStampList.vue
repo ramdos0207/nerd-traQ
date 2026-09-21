@@ -57,10 +57,7 @@ import AIcon from '/@/components/UI/AIcon.vue'
 import useContextMenu from '/@/composables/useContextMenu'
 import useToggle from '/@/composables/utils/useToggle'
 import type { Point } from '/@/lib/basic/point'
-import {
-  createStampList,
-  type MessageStampById
-} from '/@/lib/messageStampList'
+import { type MessageStampById, createStampList } from '/@/lib/messageStampList'
 import { useStampUpdater } from '/@/lib/updater/stamp'
 import { useMeStore } from '/@/store/domain/me'
 import { useStampPickerInvoker } from '/@/store/ui/stampPicker'

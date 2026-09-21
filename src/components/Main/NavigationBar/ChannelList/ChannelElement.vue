@@ -99,8 +99,8 @@ import useFocus from '/@/composables/dom/useFocus'
 import useHover from '/@/composables/dom/useHover'
 import useChannelPath from '/@/composables/useChannelPath'
 import { useOpenLink } from '/@/composables/useOpenLink'
-import type { ChannelTreeNode } from '/@/lib/channelTree'
 import type { Point } from '/@/lib/basic/point'
+import type { ChannelTreeNode } from '/@/lib/channelTree'
 import { LEFT_CLICK_BUTTON } from '/@/lib/dom/event'
 import { constructMessagesPath } from '/@/router'
 import { useSubscriptionStore } from '/@/store/domain/subscription'
@@ -134,11 +134,8 @@ const emit = defineEmits<{
   (e: 'clickHash', channelId: ChannelId): void
 }>()
 
-const {
-  primaryView,
-  setPendingPeekMode,
-  changePrimaryViewToChannel
-} = useMainViewStore()
+const { primaryView, setPendingPeekMode, changePrimaryViewToChannel } =
+  useMainViewStore()
 const router = useRouter()
 
 const hasChildren = computed(() => props.channel.children.length > 0)
@@ -173,7 +170,8 @@ const firstUnreadMessageLink = computed(() => {
 
 const openChannel = (event: MouseEvent) => {
   const link =
-    firstUnreadMessageLink.value ?? (channelIdToLink(props.channel.id) as string)
+    firstUnreadMessageLink.value ??
+    (channelIdToLink(props.channel.id) as string)
   openLink(event, link)
 }
 
@@ -196,7 +194,9 @@ const openAsPeek = () => {
   } else {
     // 別チャンネルの場合はルートウォッチャー経由で changePrimaryViewToChannel が呼ばれる
     setPendingPeekMode(true)
-    router.push(channelIdToLink(props.channel.id) ?? '').catch(() => {})
+    router.push(channelIdToLink(props.channel.id) ?? '').catch(() => {
+      // 遷移に失敗した場合は現在の表示を維持する
+    })
   }
 }
 

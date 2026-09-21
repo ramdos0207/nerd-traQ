@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, toRef } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import ContextMenuContainer from '/@/components/UI/ContextMenuContainer.vue'
@@ -45,8 +45,7 @@ const user = computed(() => usersMap.value.get(props.userId))
 
 const canOpenDM = computed(
   () =>
-    user.value &&
-    !(user.value.bot && user.value.name.startsWith('Webhook#'))
+    user.value && !(user.value.bot && user.value.name.startsWith('Webhook#'))
 )
 
 const openProfileModal = () => {
