@@ -2,9 +2,9 @@ import { ChannelSubscribeLevel } from '@traptitech/traq'
 
 import { type MaybeRef, computed, toValue } from 'vue'
 
+import useChannelPath from '/@/composables/useChannelPath'
 import { isDefined } from '/@/lib/basic/array'
 import { compareStringInsensitive } from '/@/lib/basic/string'
-import useChannelPath from '/@/composables/useChannelPath'
 import { useBrowserSettings } from '/@/store/app/browserSettings'
 import { useStarredChannels } from '/@/store/domain/starredChannels'
 import { useSubscriptionStore } from '/@/store/domain/subscription'
