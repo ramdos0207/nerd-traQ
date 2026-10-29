@@ -27,11 +27,11 @@ describe('useDateRepresentation', () => {
     vi.setSystemTime(new Date(2025, 0, 1, 23, 59, 59))
     const date = createDateRepresentation(new Date(2025, 0, 1, 12, 34))
 
-    expect(date.value).toBe('今日 12:34')
+    expect(date.value).toBe('今日 12:34:00.000')
 
     vi.advanceTimersByTime(1000)
 
-    expect(date.value).toBe('昨日 12:34')
+    expect(date.value).toBe('昨日 12:34:00.000')
   })
 
   it('shares a single timer between consumers', () => {

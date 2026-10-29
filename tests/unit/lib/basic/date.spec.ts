@@ -101,14 +101,14 @@ describe('getDisplayDate', () => {
     it('should say 昨日 after a 23-hour day', () => {
       vi.setSystemTime(new Date(2025, 2, 10))
       expect(getDateRepresentation(new Date(2025, 2, 9, 12, 34))).toBe(
-        '昨日 12:34'
+        '昨日 12:34:00.000'
       )
     })
 
     it('should say 昨日 during a 25-hour day', () => {
       vi.setSystemTime(new Date(2025, 10, 2, 23, 30))
       expect(getDateRepresentation(new Date(2025, 10, 1, 12, 34))).toBe(
-        '昨日 12:34'
+        '昨日 12:34:00.000'
       )
     })
   })
