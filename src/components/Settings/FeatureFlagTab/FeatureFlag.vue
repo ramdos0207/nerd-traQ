@@ -5,10 +5,10 @@
       <p>{{ props.description }}</p>
       <p v-if="featureFlags.flag_test.enabled">
         <strong>ていきょうしゅうりょうび</strong>:
-        {{ props.endAt.toLocaleDateString() }}
+        {{ getFullDayString(props.endAt) }}
       </p>
       <p v-else>
-        <strong>提供終了日</strong>: {{ props.endAt.toLocaleDateString() }}
+        <strong>提供終了日</strong>: {{ getFullDayString(props.endAt) }}
       </p>
     </div>
     <div>
@@ -19,6 +19,7 @@
 
 <script lang="ts" setup>
 import AToggle from '/@/components/UI/AToggle.vue'
+import { getFullDayString } from '/@/lib/basic/date'
 import { useFeatureFlagSettings } from '/@/store/app/featureFlagSettings'
 
 const { featureFlags } = useFeatureFlagSettings()

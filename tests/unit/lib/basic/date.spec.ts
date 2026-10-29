@@ -3,6 +3,7 @@ import {
   compareDateString,
   getCurrentTimeString,
   getDateRepresentation,
+  getDateRepresentationWithoutSameDate,
   getDayString,
   getFullDayString,
   getFullDayWithTimeString,
@@ -32,23 +33,43 @@ describe('getDayString', () => {
 })
 
 describe('getFullDayString', () => {
+  it.each([
+    [new Date(2026, 9, 30), 'R08/10/30'],
+    [new Date(2026, 3, 1), 'R08/04/01'],
+    [new Date(2118, 3, 1), 'R100/04/01'],
+    [new Date(2019, 4, 1), 'R01/05/01'],
+    [new Date(2019, 3, 30), 'H31/04/30'],
+    [new Date(1989, 0, 8), 'H01/01/08'],
+    [new Date(1989, 0, 7), 'S64/01/07'],
+    [new Date(1926, 11, 25), 'S01/12/25'],
+    [new Date(1926, 11, 24), 'T15/12/24'],
+    [new Date(1912, 6, 30), 'T01/07/30'],
+    [new Date(1912, 6, 29), 'M45/07/29']
+  ])('formats %s as %s', (date, expected) => {
+    expect(getFullDayString(date)).toBe(expected)
+  })
+
+  it('returns an empty string for an invalid date', () => {
+    expect(getFullDayString(new Date(NaN))).toBe('')
+  })
+
   it('can get full day (1)', () => {
-    expect(getFullDayString(defaultDate1)).toBe('1985/12/04')
+    expect(getFullDayString(defaultDate1)).toBe('S60/12/04')
   })
   it('can get full day (2)', () => {
-    expect(getFullDayString(defaultDate2)).toBe('2001/04/04')
+    expect(getFullDayString(defaultDate2)).toBe('H13/04/04')
   })
 })
 
 describe('getFullDayWithTimeString', () => {
   it('can get full day with time (1)', () => {
     expect(getFullDayWithTimeString(defaultDate1)).toBe(
-      '1985/12/04 15:21:34.123'
+      'S60/12/04 15:21:34.123'
     )
   })
   it('can get full day with time (2)', () => {
     expect(getFullDayWithTimeString(defaultDate2)).toBe(
-      '2001/04/04 05:20:34.005'
+      'H13/04/04 05:20:34.005'
     )
   })
 })
@@ -71,7 +92,7 @@ describe('getCurrentTimeString', () => {
   })
 })
 
-describe('getDisplayDate', () => {
+describe('getDateRepresentation', () => {
   beforeEach(() => {
     vi.useFakeTimers()
   })
@@ -80,6 +101,13 @@ describe('getDisplayDate', () => {
   })
 
   const dateISO = '2010-05-02T14:28:57'
+
+  it.each(['', 'invalid date', new Date(NaN)])(
+    'returns an empty string for invalid input %s',
+    date => {
+      expect(getDateRepresentation(date)).toBe('')
+    }
+  )
 
   it('should say 今日 when updated today', () => {
     vi.setSystemTime('2010-05-02T15:00:00')
@@ -117,10 +145,37 @@ describe('getDisplayDate', () => {
     vi.setSystemTime('2010-07-07T15:00:00')
     expect(getDateRepresentation(dateISO)).toBe('05/02 14:28:57.000')
   })
-  it('should get YYYY/MM/DD when updated before last year', () => {
+  it('should get a Japanese date when updated before last year', () => {
     vi.setSystemTime('2015-10-10T15:00:00')
-    expect(getDateRepresentation(dateISO)).toBe('2010/05/02 14:28:57.000')
+    expect(getDateRepresentation(dateISO)).toBe('H22/05/02 14:28:57.000')
   })
+})
+
+describe('getDateRepresentationWithoutSameDate', () => {
+  it('omits the date only for the same calendar day', () => {
+    expect(
+      getDateRepresentationWithoutSameDate(
+        new Date(2026, 9, 30, 12, 34),
+        new Date(2026, 9, 30, 15)
+      )
+    ).toBe('12:34:00.000')
+  })
+
+  it.each([
+    [new Date(2026, 9, 31), '10/30 12:34:00.000'],
+    [new Date(2026, 10, 30), '10/30 12:34:00.000'],
+    [new Date(2027, 9, 30), 'R08/10/30 12:34:00.000']
+  ])(
+    'omits the year only in the same year when compared to %s',
+    (fromDate, expected) => {
+      expect(
+        getDateRepresentationWithoutSameDate(
+          new Date(2026, 9, 30, 12, 34),
+          fromDate
+        )
+      ).toBe(expected)
+    }
+  )
 })
 
 describe('compareDate', () => {

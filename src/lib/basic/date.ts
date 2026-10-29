@@ -22,8 +22,23 @@ export const getTimeString = (date: Readonly<Date>) =>
 export const getDayString = (date: Readonly<Date>) =>
   `${getMonthString(date)}/${getDateString(date)}`
 
-export const getFullDayString = (date: Readonly<Date>) =>
-  `${date.getFullYear()}/${getDayString(date)}`
+const japaneseDateFormatter = new Intl.DateTimeFormat('en-US-u-ca-japanese', {
+  era: 'narrow',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+})
+
+/** ローカルの日付を R08/04/01 形式の和暦で返す。元年は 01 と表記する。 */
+export const getFullDayString = (date: Readonly<Date>) => {
+  if (Number.isNaN(date.getTime())) return ''
+
+  const parts = japaneseDateFormatter.formatToParts(date)
+  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find(part => part.type === type)?.value ?? ''
+
+  return `${getPart('era')}${getPart('year').padStart(2, '0')}/${getPart('month')}/${getPart('day')}`
+}
 
 export const getFullDayWithTimeString = (date: Readonly<Date>) =>
   `${getFullDayString(date)} ${getTimeString(date)}`
