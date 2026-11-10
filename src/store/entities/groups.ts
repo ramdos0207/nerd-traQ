@@ -7,6 +7,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import apis from '/@/lib/apis'
 import { createSingleflight } from '/@/lib/basic/async'
 import { arrayToMap } from '/@/lib/basic/map'
+import { buildUserGroupRingColorsMap } from '/@/lib/userGroupRing'
 import { wsListener } from '/@/lib/websocket'
 import { convertToRefsStore } from '/@/store/utils/convertToRefsStore'
 import { useTrueChangedPromise } from '/@/store/utils/promise'
@@ -27,6 +28,10 @@ const useGroupsStorePinia = defineStore('entities/groups', () => {
 
   const gradeGroups = computed(() =>
     [...userGroupsMap.value.values()].filter(group => group.type === 'grade')
+  )
+
+  const userGroupRingColorsMap = computed(() =>
+    buildUserGroupRingColorsMap(userGroupsMap.value.values())
   )
 
   const getGradeGroupsByUserId = (userId: UserId) =>
@@ -140,6 +145,7 @@ const useGroupsStorePinia = defineStore('entities/groups', () => {
     userGroupsMap,
     userGroupsMapInitialFetchPromise,
     gradeGroups,
+    userGroupRingColorsMap,
     getGradeGroupsByUserId,
     getUserGroupByName,
     fetchUserGroups,
